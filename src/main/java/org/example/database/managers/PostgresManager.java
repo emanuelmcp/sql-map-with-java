@@ -1,4 +1,4 @@
-package org.example.database;
+package org.example.database.managers;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -9,11 +9,19 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class PostgresPool extends DBConfig {
-
+public class PostgresManager extends DBConfig {
     private HikariConfig hikariConfig = new HikariConfig();
-
     private HikariDataSource dataSource = new HikariDataSource();
+    private static PostgresManager poolObject;
+
+    private PostgresManager(){}
+
+    public static PostgresManager getInstance(){
+        if (poolObject == null) poolObject = new PostgresManager();
+        poolObject.init();
+        poolObject.setupPool();
+        return poolObject;
+    }
 
     public void init() {
         hostname = "localhost";
