@@ -1,0 +1,185 @@
+# https://estradawebgroup.com/Post/Base-de-datos-de-muestra-de-SQL-Server-para-los-ejemplos-que-realizaremos/4459
+STORES:
+La tabla stores incluye la información de la tienda.
+Cada tienda tiene un nombre de tienda, información de contacto
+como teléfono y correo electrónico, y una dirección que incluye calle,
+ciudad, estado y código postal.
+
+CREATE TABLE stores (
+    store_id INT PRIMARY KEY,
+    store_name VARCHAR (255) NOT NULL,
+    phone VARCHAR (25),
+    email VARCHAR (255),
+    street VARCHAR (255),
+    city VARCHAR (255),
+    state VARCHAR (10),
+    zip_code VARCHAR (5)
+);
+---------------------------------------------------------------------------
+
+STAFFS:
+La tabla staffs almacena la información esencial del personal,
+incluido el nombre y el apellido. También contiene información de
+comunicación como correo electrónico y teléfono.
+
+Una persona trabaja en una tienda especificada por el valor en la
+columna store_id. Una tienda puede tener uno o más empleados.
+
+Una persona informa a un gerente de tienda especificado por el valor
+en la columna manager_id. Si el valor en manager_id es nulo,
+entonces el personal es el gerente superior.
+
+Si un personal ya no trabaja para ninguna tienda, el valor en
+la columna activa se establece en cero.
+
+CREATE TABLE staffs (
+    staff_id INT PRIMARY KEY,
+    first_name VARCHAR (50) NOT NULL,
+    last_name VARCHAR (50) NOT NULL,
+    email VARCHAR (255) NOT NULL UNIQUE,
+    phone VARCHAR (25),
+    active int NOT NULL,
+    store_id INT NOT NULL,
+    manager_id INT,
+    FOREIGN KEY (store_id)
+        REFERENCES stores (store_id)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (manager_id)
+        REFERENCES staffs (staff_id)
+        ON DELETE NO ACTION ON UPDATE NO ACTION
+);
+
+---------------------------------------------------------------------------
+
+CATEGORIES:
+
+La tabla categories almacena las categorías de bicicletas,
+como bicicletas para niños, bicicletas de confort y bicicletas eléctricas.
+
+CREATE TABLE categories (
+    category_id INT PRIMARY KEY,
+    category_name VARCHAR (255) NOT NULL
+);
+
+---------------------------------------------------------------------------
+
+BRANDS:
+
+La tabla brands almacena la información de la
+marca de bicicletas, por ejemplo, Electra, Haro y Heller.
+
+CREATE TABLE brands (
+     brand_id INT PRIMARY KEY,
+     brand_name VARCHAR (255) NOT NULL
+);
+---------------------------------------------------------------------------
+
+PRODUCTS:
+
+La tabla products almacena la información del
+producto, como el nombre, la marca, la categoría,
+el año del modelo y el precio de lista.
+
+Cada producto pertenece a una marca especificada por la columna brand_id.
+Por lo tanto, una marca puede tener cero o muchos productos.
+
+Cada producto también pertenece a una categoría especificada por la columna
+category_id. Además, cada categoría puede tener cero o muchos productos.
+
+CREATE TABLE products (
+    product_id INT PRIMARY KEY,
+    product_name VARCHAR (255) NOT NULL,
+    brand_id INT NOT NULL,
+    category_id INT NOT NULL,
+    model_year SMALLINT NOT NULL,
+    list_price DECIMAL (10, 2) NOT NULL,
+    FOREIGN KEY (category_id)
+        REFERENCES categories (category_id)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+        FOREIGN KEY (brand_id)
+            REFERENCES brands (brand_id)
+            ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+---------------------------------------------------------------------------
+
+CUSTOMERS:
+
+La tabla customers almacena la información del cliente,
+incluyendo nombre, apellido, teléfono, correo electrónico, calle,
+ciudad, estado y código postal.
+
+CREATE TABLE customers (
+    customer_id INT PRIMARY KEY,
+    first_name VARCHAR (255) NOT NULL,
+    last_name VARCHAR (255) NOT NULL,
+    phone VARCHAR (25),
+    email VARCHAR (255) NOT NULL,
+    street VARCHAR (255),
+    city VARCHAR (50),
+    state VARCHAR (25),
+    zip_code VARCHAR (5)
+);
+
+---------------------------------------------------------------------------
+
+ORDERS
+
+La tabla sales.orders almacena la información de la orden del pedido
+de los clientes, incluido el cliente, el estado del pedido, la fecha
+del pedido, la fecha requerida y la fecha de envío.
+
+También almacena la información sobre dónde se creó la transacción
+de venta (tienda) y quién la creó (personal).
+
+Cada pedido de ventas tiene una fila en la tabla sales_orders. Un pedido
+de ventas tiene una o varias líneas de pedido almacenadas en la tabla
+sales.order_items.
+
+CREATE TABLE orders (
+    order_id INT PRIMARY KEY,
+    customer_id INT,
+    order_status int NOT NULL,
+    -- Order status: 1 = Pending; 2 = Processing; 3 = Rejected; 4 = Completed
+    order_date DATE NOT NULL,
+    required_date DATE NOT NULL,
+    shipped_date DATE,
+    store_id INT NOT NULL,
+    staff_id INT NOT NULL,
+    FOREIGN KEY (customer_id)
+        REFERENCES customers (customer_id)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (store_id)
+        REFERENCES stores (store_id)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (staff_id)
+        REFERENCES staffs (staff_id)
+        ON DELETE NO ACTION ON UPDATE NO ACTION
+);
+
+---------------------------------------------------------------------------
+
+ORDER_ITEMS
+
+La tabla sales.order_items almacena los artículos de un pedido
+de ventas. Cada artículo pertenece a un pedido de ventas
+especificado por la columna order_id.
+
+Un producto del pedido del cliente incluye producto,
+cantidad de pedido, precio de lista y descuento.
+
+CREATE TABLE order_items(
+    order_id INT,
+    item_id INT,
+    product_id INT NOT NULL,
+    quantity INT NOT NULL,
+    list_price DECIMAL (10, 2) NOT NULL,
+    discount DECIMAL (4, 2) NOT NULL DEFAULT 0,
+    PRIMARY KEY (order_id, item_id),
+    FOREIGN KEY (order_id)
+        REFERENCES orders (order_id)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (product_id)
+        REFERENCES products (product_id)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
